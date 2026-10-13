@@ -1,0 +1,6 @@
+{
+  "name": "LUCKY_5 - 5-Player Tournament & Instant Transfers",
+  "description": "LUCKY_5: High-intensity 5-player skill gaming arena with ₹100 entry fee, ₹200 / ₹150 / ₹100 cash prizes, bot fill matchmaking, UPI/PhonePe/GPay instant debit & credit transfers, and 2FA secure withdrawals.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

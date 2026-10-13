@@ -1,0 +1,100 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global helper primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Connection test document
+    match /test/connection {
+      allow read: if true;
+    }
+
+    // Users Collection
+    function isValidUser(data) {
+      return data.keys().hasAll(['id', 'name', 'phone', 'isVerified']) &&
+        data.id is string && data.id.size() <= 128 &&
+        data.name is string && data.name.size() <= 80 &&
+        data.phone is string && data.phone.size() <= 30 &&
+        data.isVerified is bool;
+    }
+
+    match /users/{userId} {
+      allow read: if true;
+      allow create, update: if isValidId(userId) && isValidUser(incoming());
+      allow delete: if false;
+    }
+
+    // Wallets Collection
+    function isValidWallet(data) {
+      return data.keys().hasAll(['userId', 'depositBalance', 'winningsBalance', 'totalBalance']) &&
+        data.userId is string && data.userId.size() <= 128 &&
+        data.depositBalance is number && data.depositBalance >= 0 &&
+        data.winningsBalance is number && data.winningsBalance >= 0 &&
+        data.totalBalance is number && data.totalBalance >= 0;
+    }
+
+    match /wallets/{userId} {
+      allow read: if true;
+      allow create, update: if isValidId(userId) && isValidWallet(incoming());
+      allow delete: if false;
+    }
+
+    // Transactions Collection
+    function isValidTransaction(data) {
+      return data.keys().hasAll(['id', 'userId', 'type', 'amount', 'status', 'utrNumber']) &&
+        data.id is string && data.id.size() <= 128 &&
+        data.userId is string && data.userId.size() <= 128 &&
+        data.type in ['deposit', 'withdrawal', 'entry_fee', 'prize_won'] &&
+        data.amount is number && data.amount > 0 &&
+        data.status in ['SUCCESS', 'PENDING', 'FAILED'] &&
+        data.utrNumber is string && data.utrNumber.size() <= 80;
+    }
+
+    match /transactions/{txnId} {
+      allow read: if true;
+      allow create: if isValidId(txnId) && isValidTransaction(incoming());
+      allow update, delete: if false;
+    }
+
+    // Rooms Collection
+    function isValidRoom(data) {
+      return data.keys().hasAll(['id', 'name', 'code', 'maxSlots', 'entryFee', 'status']) &&
+        data.id is string && data.id.size() <= 128 &&
+        data.name is string && data.name.size() <= 80 &&
+        data.code is string && data.code.size() <= 20 &&
+        data.maxSlots == 5 &&
+        data.entryFee is number && data.entryFee >= 0 &&
+        data.status in ['WAITING', 'MATCHMAKING', 'IN_PROGRESS', 'COMPLETED'];
+    }
+
+    match /rooms/{roomId} {
+      allow read: if true;
+      allow create, update: if isValidId(roomId) && isValidRoom(incoming());
+      allow delete: if false;
+    }
+  }
+}

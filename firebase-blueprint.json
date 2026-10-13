@@ -1,0 +1,88 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Registered player profile",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 80 },
+        "phone": { "type": "string", "maxLength": 30 },
+        "avatarSeed": { "type": "string", "maxLength": 50 },
+        "isVerified": { "type": "boolean" },
+        "twoFactorEnabled": { "type": "boolean" },
+        "createdAt": { "type": "string", "maxLength": 40 },
+        "updatedAt": { "type": "string", "maxLength": 40 }
+      },
+      "required": ["id", "name", "phone", "isVerified"]
+    },
+    "Wallet": {
+      "title": "Wallet",
+      "description": "User INR wallet balance state",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "depositBalance": { "type": "number" },
+        "winningsBalance": { "type": "number" },
+        "totalBalance": { "type": "number" },
+        "updatedAt": { "type": "string", "maxLength": 40 }
+      },
+      "required": ["userId", "depositBalance", "winningsBalance", "totalBalance"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Wallet top-up, withdrawal, entry fee, or tournament prize record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "enum": ["deposit", "withdrawal", "entry_fee", "prize_won"] },
+        "amount": { "type": "number" },
+        "timestamp": { "type": "string", "maxLength": 40 },
+        "method": { "type": "string", "maxLength": 50 },
+        "upiId": { "type": "string", "maxLength": 100 },
+        "status": { "type": "string", "enum": ["SUCCESS", "PENDING", "FAILED"] },
+        "description": { "type": "string", "maxLength": 200 },
+        "utrNumber": { "type": "string", "maxLength": 80 },
+        "roomName": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["id", "userId", "type", "amount", "status", "utrNumber"]
+    },
+    "Room": {
+      "title": "Room",
+      "description": "5-slot tournament room",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 80 },
+        "code": { "type": "string", "maxLength": 20 },
+        "isPrivate": { "type": "boolean" },
+        "passcode": { "type": "string", "maxLength": 20 },
+        "hostName": { "type": "string", "maxLength": 80 },
+        "maxSlots": { "type": "number" },
+        "entryFee": { "type": "number" },
+        "status": { "type": "string", "enum": ["WAITING", "MATCHMAKING", "IN_PROGRESS", "COMPLETED"] },
+        "category": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "name", "code", "maxSlots", "entryFee", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Collection of user player accounts and verification info"
+    },
+    "/wallets/{userId}": {
+      "schema": { "$ref": "#/entities/Wallet" },
+      "description": "User INR wallet balance"
+    },
+    "/transactions/{txnId}": {
+      "schema": { "$ref": "#/entities/Transaction" },
+      "description": "Log of financial and prize transactions"
+    },
+    "/rooms/{roomId}": {
+      "schema": { "$ref": "#/entities/Room" },
+      "description": "5-player game and private rooms"
+    }
+  }
+}
